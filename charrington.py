@@ -499,11 +499,7 @@ def output_mutt_aliases(contacts):
         printed.add(contact.id)
 
 def format_contact_lbdb(nickname, first_name, last_name, addr):
-    """Return a string containing a contact as a Mutt alias record.
-
-    Mutt aliases support only a single email address per contact (multiple addresses
-    are treated as groups). So this function writes an alias for a single given
-    nickname, first and last name, and address.
+    """Return a string containing a contact as a lbdb record.
     """
     str = u"{email}\t{first} {last}\tGoogle".format(
         nick=nickname, first=first_name, last=last_name, email=addr)
@@ -511,7 +507,7 @@ def format_contact_lbdb(nickname, first_name, last_name, addr):
 
 
 def output_lbdb(contacts):
-    """Print all contact records as a Mutt aliases file."""
+    """Print all contact records as a lbdb file."""
     nicks = {}
     printed = set()
     for contact in contacts:
