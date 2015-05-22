@@ -498,6 +498,41 @@ def output_mutt_aliases(contacts):
             print(format_contact_mutt(nick, contact.first_name, contact.last_name, email[EMAIL_ADDRESS]).encode("utf-8"))
         printed.add(contact.id)
 
+def format_contact_lbdb(nickname, first_name, last_name, addr):
+    """Return a string containing a contact as a Mutt alias record.
+
+    Mutt aliases support only a single email address per contact (multiple addresses
+    are treated as groups). So this function writes an alias for a single given
+    nickname, first and last name, and address.
+    """
+    str = u"{email}\t{first} {last}\tGoogle".format(
+        nick=nickname, first=first_name, last=last_name, email=addr)
+    return str
+
+
+def output_lbdb(contacts):
+    """Print all contact records as a Mutt aliases file."""
+    nicks = {}
+    printed = set()
+    for contact in contacts:
+        # don't print the same contact twice
+        if contact.id in printed:
+            continue
+        # don't print entries that have no email addresses
+        if not contact.email:
+            continue
+        # now iterate over each address, and create a unique alias
+        for email in contact.email:
+            fname = contact.first_name.lower().replace(" ", "")
+            nick = fname
+            if fname in nicks:
+                nick += str(nicks[fname])
+                nicks[fname] += 1
+            else:
+                nicks[fname] = 1
+            print(format_contact_lbdb(nick, contact.first_name, contact.last_name, email[EMAIL_ADDRESS]).encode("utf-8"))
+        printed.add(contact.id)
+
 
 def display_groups(acct):
     """Print information about all contact groups in the given account."""
@@ -526,6 +561,7 @@ if __name__ == "__main__":
     parser.add_argument("-g", "--show-groups", action="store_true", help="Display information on contact groups.")
     parser.add_argument("-c", "--contact", help="View raw XML returned by Google Contacts API for a given contact ID.")
     parser.add_argument("-m", "--mutt", action="store_true", help="Write output in Mutt alias format instead of BBDB")
+    parser.add_argument("-l", "--lbdb", action="store_true", help="Write output in lbdb format instead of BBDB")
     args = parser.parse_args()
 
     cp = load_config()
@@ -573,5 +609,7 @@ if __name__ == "__main__":
         contacts.sort(key=lambda x: x.last_name.lower())
         if args.mutt:
             output_mutt_aliases(contacts)
+        elif args.lbdb:
+            output_lbdb(contacts)
         else:
             output_bbdb_file(contacts)
